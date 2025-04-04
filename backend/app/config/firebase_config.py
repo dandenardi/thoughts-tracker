@@ -12,5 +12,7 @@ if firebase_credentials_path is None:
     raise ValueError("Firebase credentials path is not set in the environment variables")
 
 cred = credentials.Certificate(firebase_credentials_path)
-firebase_admin.initialize_app(cred)
+
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
 
