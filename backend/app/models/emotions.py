@@ -1,15 +1,25 @@
 from pydantic import BaseModel, ConfigDict
-from typing import ClassVar
+from typing import ClassVar, Optional
 
 class Emotion(BaseModel):
-    name: str  # Define o campo 'name' como uma string obrigatória.
+    id: Optional[str] = None  # Optional because new emotions won't have an ID until saved
+    name: str
+    description: Optional[str] = None
 
     # Definindo Config corretamente como ClassVar
     Config: ClassVar[ConfigDict] = ConfigDict(from_attributes=True)
 
     def to_dict(self):
-        return {"name": self.name}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description
+        }
 
     @classmethod
     def from_dict(cls, data: dict):
-        return cls(name=data["name"])
+        return cls(
+            id=data.get("id"),
+            name=data["name"],
+            description=data.get("description")
+        )
