@@ -21,6 +21,8 @@
 build/
 .melos_tool/
 .metadata
+.env
+assets/.env
 
 # iOS
 **/ios/Flutter/.last_build_id
