@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:thoughts_tracker/services/thought_service.dart';
 
 class NewThoughtScreen extends StatefulWidget {
   const NewThoughtScreen({super.key});
@@ -37,7 +38,7 @@ class _NewThoughtScreenState extends State<NewThoughtScreen> {
     super.dispose();
   }
 
-  void _submitForm() {
+  void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       final newRecord = {
         'title': _titleController.text,
@@ -45,12 +46,28 @@ class _NewThoughtScreenState extends State<NewThoughtScreen> {
         'emotion': _emotionController.text,
         'underlying_belief': _beliefController.text,
         'symptoms': _selectedSymptoms,
-        'timestamp': DateTime.now().toIso8601String(),
       };
 
-      print('Novo registro: $newRecord');
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
 
-      // TODO: enviar para o Firebase ou backend.
+      try {
+        await ThoughtService.sendThought(newRecord);
+        if (!mounted) return;
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Registry saved successfully!")),
+        );
+        Navigator.of(context).pop();
+      } catch (e) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error: $e")));
+      }
     }
   }
 

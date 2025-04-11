@@ -1,22 +1,13 @@
-from fastapi import APIRouter, Depends,HTTPException
-from fastapi.security import OAuth2PasswordBearer
-from app.services.auth_service import verify_token
+from fastapi import APIRouter, Security
+from app.dependencies.auth_dependency import get_current_user
 from app.models.users import User
 
 router = APIRouter()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-@router.post("/login")
-async def login(token: str = Depends(oauth2_scheme)):
-    user = verify_token(token)
-    return {"message": "Login successful", "user": user}
-
 @router.get("/me")
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    user = verify_token(token)
-    return {"user": user}
+async def get_current_user_endpoint(current_user = Security(get_current_user)):
+    return {"user": current_user}
 
 @router.get("/verify-token", response_model=User)
-def verify_user(id_token: str):
-    return verify_token(id_token)
+async def verify_user_endpoint(current_user = Security(get_current_user)):
+    return current_user
