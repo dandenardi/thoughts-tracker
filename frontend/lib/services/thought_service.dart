@@ -50,7 +50,9 @@ class ThoughtService {
         final List<dynamic> jsonData = jsonDecode(response.body);
         return jsonData.cast<Map<String, dynamic>>();
       } else {
-        throw Exception('Erro ao buscar pensamentos: ${response.statusCode}');
+        throw Exception(
+          'Error while recovering thoughts: ${response.statusCode}',
+        );
       }
     } catch (e) {
       rethrow;
