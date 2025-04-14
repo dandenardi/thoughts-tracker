@@ -1,6 +1,5 @@
 import "package:firebase_auth/firebase_auth.dart";
 import "package:google_sign_in/google_sign_in.dart";
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AuthService {
