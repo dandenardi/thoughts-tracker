@@ -11,7 +11,7 @@ class ThoughtService {
     if (user == null) {
       throw Exception("Usuário não autenticado.");
     }
-    final idToken = await user.getIdToken();
+    final idToken = await user.getIdToken(true);
     return {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $idToken',

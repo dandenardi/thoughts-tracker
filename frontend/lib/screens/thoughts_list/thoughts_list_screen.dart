@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:thoughts_tracker/services/thought_service.dart';
+import 'package:thoughts_tracker/screens/thoughts_detail/thoughts_detail_screen.dart';
 
 class ThoughtsListScreen extends StatefulWidget {
   const ThoughtsListScreen({super.key});
@@ -37,12 +38,24 @@ class _ThoughtsListScreenState extends State<ThoughtsListScreen> {
             itemCount: thoughts.length,
             itemBuilder: (context, index) {
               final thought = thoughts[index];
-              return ListTile(
-                title: Text(thought['title'] ?? 'No title'),
-                subtitle: Text(thought['emotion'] ?? 'No emotion'),
-                onTap: () {
-                  // TODO: add detailed view and edit options
-                },
+              return Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  title: Text(thought['title'] ?? 'No title'),
+                  subtitle: Text(thought['emotion'] ?? 'No emotion'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => ThoughtDetailScreen(thought: thought),
+                      ),
+                    );
+                  },
+                ),
               );
             },
           );

@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from app.db.connection import Neo4jConnection
 from app.models.emotions import Emotion
 from app.services.emotion_service import add_emotion, get_all_emotions_from_db
+
 router = APIRouter()
 
 db = Neo4jConnection()

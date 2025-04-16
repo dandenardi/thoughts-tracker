@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:thoughts_tracker/models/emotion.dart';
+import 'package:thoughts_tracker/models/symptom.dart';
+import 'package:thoughts_tracker/services/emotion_service.dart';
+import 'package:thoughts_tracker/services/symptom_service.dart';
 import 'package:thoughts_tracker/services/thought_service.dart';
 
 class NewThoughtScreen extends StatefulWidget {
@@ -11,31 +15,39 @@ class NewThoughtScreen extends StatefulWidget {
 class _NewThoughtScreenState extends State<NewThoughtScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final List<String> _allSymptoms = [
-    'Cold sweat',
-    'Leg shaking',
-    'Trouble to breath',
-    'Dizziness',
-    'Sadness',
-    'Anxiety',
-    'Isolation',
-    'Impotence sensation',
-    'Self devalue (feeling)',
-  ];
-
   final _titleController = TextEditingController();
   final _situationController = TextEditingController();
-  final _emotionController = TextEditingController();
   final _beliefController = TextEditingController();
-  final List<String> _selectedSymptoms = [];
+
+  List<Emotion> _emotions = [];
+  List<Symptom> _allSymptoms = [];
+  Emotion? _selectedEmotion;
+  final List<Symptom> _selectedSymptoms = [];
+
+  bool _loading = true;
 
   @override
-  void dispose() {
-    _titleController.dispose();
-    _situationController.dispose();
-    _emotionController.dispose();
-    _beliefController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final emotions = await EmotionService.fetchEmotions();
+      final symptoms = await SymptomService.fetchSymptoms();
+
+      setState(() {
+        _emotions = emotions;
+        _allSymptoms = symptoms;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading data: $e')));
+    }
   }
 
   void _submitForm() async {
@@ -43,9 +55,9 @@ class _NewThoughtScreenState extends State<NewThoughtScreen> {
       final newRecord = {
         'title': _titleController.text,
         'situation_description': _situationController.text,
-        'emotion': _emotionController.text,
+        'emotion': _selectedEmotion?.name,
         'underlying_belief': _beliefController.text,
-        'symptoms': _selectedSymptoms,
+        'symptoms': _selectedSymptoms.map((s) => s.name).toList(),
       };
 
       showDialog(
@@ -69,6 +81,14 @@ class _NewThoughtScreenState extends State<NewThoughtScreen> {
         ).showSnackBar(SnackBar(content: Text("Error: $e")));
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _situationController.dispose();
+    _beliefController.dispose();
+    super.dispose();
   }
 
   @override
@@ -101,16 +121,23 @@ class _NewThoughtScreenState extends State<NewThoughtScreen> {
                             : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _emotionController,
+              DropdownButtonFormField<Emotion>(
+                value: _selectedEmotion,
+                items:
+                    _emotions
+                        .map(
+                          (e) =>
+                              DropdownMenuItem(value: e, child: Text(e.name)),
+                        )
+                        .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedEmotion = value;
+                  });
+                },
                 decoration: const InputDecoration(
                   labelText: 'Predominant emotion',
                 ),
-                validator:
-                    (value) =>
-                        value == null || value.isEmpty
-                            ? 'Which was the predominant emotion?'
-                            : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -131,7 +158,7 @@ class _NewThoughtScreenState extends State<NewThoughtScreen> {
                     _allSymptoms.map((symptom) {
                       final isSelected = _selectedSymptoms.contains(symptom);
                       return FilterChip(
-                        label: Text(symptom),
+                        label: Text(symptom.name),
                         selected: isSelected,
                         onSelected: (bool selected) {
                           setState(() {

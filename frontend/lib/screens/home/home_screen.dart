@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:thoughts_tracker/screens/thoughts_list/thoughts_list_screen.dart';
 import '../new_thought/new_thought_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,6 +16,18 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text("Hello, Welcome back!"),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.list),
+            tooltip: "View all thoughts",
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ThoughtsListScreen()),
+              );
+
+              // Navigator.push to the analysis page
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.analytics),
             tooltip: "Check analysis",
