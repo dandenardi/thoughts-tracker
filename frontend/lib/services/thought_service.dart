@@ -21,7 +21,7 @@ class ThoughtService {
   static Future<void> sendThought(Map<String, dynamic> thoughtData) async {
     try {
       final headers = await _getAuthHeaders();
-      final url = Uri.parse("$_baseUrl/thought-records");
+      final url = Uri.parse("$_baseUrl/thought-records/");
 
       final response = await http.post(
         url,
@@ -42,7 +42,7 @@ class ThoughtService {
   static Future<List<Map<String, dynamic>>> getThoughts() async {
     try {
       final headers = await _getAuthHeaders();
-      final url = Uri.parse("$_baseUrl/thought-records");
+      final url = Uri.parse("$_baseUrl/thought-records/");
 
       final response = await http.get(url, headers: headers);
 
