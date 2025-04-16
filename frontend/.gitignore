@@ -1,0 +1,40 @@
+# Misc
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.history
+.svn/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub/
+.pub-cache/
+build/
+.melos_tool/
+.metadata
+.env
+assets/.env
+
+# iOS
+**/ios/Flutter/.last_build_id
+
+# Android
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Symbolication / Obfuscation
+app.*.symbols
+app.*.map.json
+
+# VSCode
+.vscode/

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1064678498773",
+    "project_id": "thoughts-tracker-e36c2",
+    "storage_bucket": "thoughts-tracker-e36c2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1064678498773:android:f227333478f078846a5d5c",
+        "android_client_info": {
+          "package_name": "com.example.frontend"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1064678498773-h904p1heikvfgb17ffbjlds0nhmsigjp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.frontend",
+            "certificate_hash": "dd3c487f698c840aeee35d0b1872301412b64939"
+          }
+        },
+        {
+          "client_id": "1064678498773-si9nk8oitgkmqptn79lv2rfp14dngfmf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdaK76XBn1QhPO6zCzmibVJ9Jme9Szvao"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1064678498773-si9nk8oitgkmqptn79lv2rfp14dngfmf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
