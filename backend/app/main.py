@@ -6,7 +6,7 @@ from app.routes import auth
 from app.routes import thoughts
 from app.config import firebase_config  # Import Firebase config to initialize the SDK
 
-app = FastAPI()
+app = FastAPI(redirect_slashes=False)
 
 app.add_middleware(
     CORSMiddleware,
