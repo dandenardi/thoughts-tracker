@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from app.models.thought_record import ThoughtRecord
 from app.db.connection import Neo4jConnection
@@ -6,16 +6,13 @@ from app.db.connection import Neo4jConnection
 db = Neo4jConnection()
 
 def create_thought(record: ThoughtRecord) -> ThoughtRecord:
-    """
-    Create a new emotion record in the database.
-    """
     try:
         query = """
         MATCH (u:User {uid: $user_id})
         CREATE (r:ThoughtRecord {
             id: randomUUID(),
             user_id: $user_id,
-            timestamp: datetime($timestamp),
+            timestamp: $timestamp,
             title: $title,
             situation_description: $situation_description,
             symptoms: $symptoms,
@@ -23,36 +20,31 @@ def create_thought(record: ThoughtRecord) -> ThoughtRecord:
             underlying_belief: $underlying_belief,
             created_at: datetime(),
             updated_at: datetime()
-            
         })
         CREATE (u)-[:HAS_RECORD]->(r)
         RETURN r
         """
 
         with db.get_session() as session:
-            result = session.run(query,{
-
-                "user_id":record.user_id,
-                "timestamp":record.timestamp.isoformat(),
-                "title":record.title,
-                "situation_description":record.situation_description,
+            result = session.run(query, {
+                "user_id": record.user_id,
+                "timestamp": record.timestamp.astimezone(timezone.utc),
+                "title": record.title,
+                "situation_description": record.situation_description,
                 "symptoms": record.symptoms,
-                "emotion":record.emotion,
-                "underlying_belief":record.underlying_belief
+                "emotion": record.emotion,
+                "underlying_belief": record.underlying_belief
             }).single()
 
         if result:
             record_data = result["r"]
-            
             timestamp = record_data["timestamp"]
 
-            if isinstance(timestamp, str):
-                parsed_timestamp = datetime.fromisoformat(timestamp)
-            elif hasattr(timestamp, "to_native"):
+            if hasattr(timestamp, "to_native"):
                 parsed_timestamp = timestamp.to_native()
             else:
                 parsed_timestamp = timestamp
-            
+
             return ThoughtRecord(
                 id=record_data["id"],
                 user_id=record_data["user_id"],
@@ -65,8 +57,9 @@ def create_thought(record: ThoughtRecord) -> ThoughtRecord:
             )
 
     except Exception as e:
-        print(f"Error creating emotion record: {e}")
+        print(f"Error creating thought record: {e}")
         raise e
+
 
 def get_user_thoughts(
     user_id: str,
@@ -75,63 +68,64 @@ def get_user_thoughts(
     emotion: Optional[str] = None,
     symptom: Optional[str] = None
 ) -> List[ThoughtRecord]:
-    """
-    Get thought records for a user with optional filtering.
-    """
     try:
         query = """
-        MATCH (u:User {uid: $user_id})-[:HAS_RECORD]->(r:EmotionRecord)
+        MATCH (u:User {uid: $user_id})-[:HAS_RECORD]->(r:ThoughtRecord)
         WHERE 1=1
         """
         params = {"user_id": user_id}
 
         if start_date:
-            query += " AND r.timestamp >= datetime($start_date)"
-            params["start_date"] = start_date.isoformat()
+            query += " AND r.timestamp >= $start_date"
+            params["start_date"] = start_date.astimezone(timezone.utc)
         
         if end_date:
-            query += " AND r.timestamp <= datetime($end_date)"
-            params["end_date"] = end_date.isoformat()
+            query += " AND r.timestamp <= $end_date"
+            params["end_date"] = end_date.astimezone(timezone.utc)
         
         if emotion:
             query += " AND r.emotion = $emotion"
             params["emotion"] = emotion
 
         if symptom:
-            query += " AND symptom IN r.symptoms"
+            query += " AND $symptom IN r.symptoms"
             params["symptom"] = symptom
 
         query += " RETURN r ORDER BY r.timestamp DESC"
 
         with db.get_session() as session:
             results = session.run(query, params)
+            raw_data = results.data()
 
         records = []
-        for result in results:
+        for result in raw_data:
             record_data = result["r"]
+            timestamp = record_data["timestamp"]
+
+            if hasattr(timestamp, "to_native"):
+                parsed_timestamp = timestamp.to_native()
+            else:
+                parsed_timestamp = timestamp
+
             records.append(ThoughtRecord(
                 id=record_data["id"],
                 user_id=record_data["user_id"],
-                timestamp=datetime.fromisoformat(record_data["timestamp"]),
+                timestamp=parsed_timestamp,
                 title=record_data.get("title"),
                 situation_description=record_data.get("situation_description"),
                 symptoms=record_data.get("symptoms", []),
                 emotion=record_data["emotion"],
                 underlying_belief=record_data.get("underlying_belief"),
-                
             ))
+        
         return records
 
     except Exception as e:
         print(f"Error getting user thought records: {e}")
         raise e
-    
+
 
 def get_thought_patterns(user_id: str) -> List[dict]:
-    """
-    Analyze emotion patterns for a user:
-    - Most common emotions (top 5)
-    """
     try:
         query = """
         MATCH (u:User {uid: $user_id})-[:HAS_RECORD]->(r:ThoughtRecord)
@@ -152,15 +146,15 @@ def get_thought_patterns(user_id: str) -> List[dict]:
         raise e
 
 
-def update_thought_record(record_id: str, updates: dict) -> Optional[ThoughtRecord]:
-    """
-    Update an existing thought record.
-    """
+def update_thought(record_id: str, updates: dict) -> Optional[ThoughtRecord]:
     try:
-        # Atualização de timestamp automática
-        updates["updated_at"] = datetime.now(datetime.UTC).isoformat()
+        updates["updated_at"] = datetime.now(timezone.utc)
 
-        # Caso esteja passando symptoms via JSON, precisamos garantir que seja uma lista
+        if "timestamp" in updates and isinstance(updates["timestamp"], str):
+            updates["timestamp"] = datetime.fromisoformat(updates["timestamp"]).astimezone(timezone.utc)
+        elif "timestamp" in updates and isinstance(updates["timestamp"], datetime):
+            updates["timestamp"] = updates["timestamp"].astimezone(timezone.utc)
+
         if "symptoms" in updates and not isinstance(updates["symptoms"], list):
             updates["symptoms"] = [updates["symptoms"]]
 
@@ -175,10 +169,17 @@ def update_thought_record(record_id: str, updates: dict) -> Optional[ThoughtReco
 
         if result:
             record_data = result["r"]
+            timestamp = record_data["timestamp"]
+
+            if hasattr(timestamp, "to_native"):
+                parsed_timestamp = timestamp.to_native()
+            else:
+                parsed_timestamp = timestamp
+
             return ThoughtRecord(
                 id=record_data["id"],
                 user_id=record_data["user_id"],
-                timestamp=datetime.fromisoformat(record_data["timestamp"]),
+                timestamp=parsed_timestamp,
                 title=record_data.get("title"),
                 situation_description=record_data.get("situation_description"),
                 symptoms=record_data.get("symptoms", []),
@@ -192,11 +193,7 @@ def update_thought_record(record_id: str, updates: dict) -> Optional[ThoughtReco
         raise e
 
 
-
 def delete_thought(record_id: str) -> bool:
-    """
-    Delete a thought record.
-    """
     try:
         query = """
         MATCH (r:ThoughtRecord {id: $record_id})
@@ -210,5 +207,5 @@ def delete_thought(record_id: str) -> bool:
         return result["deleted"] > 0
 
     except Exception as e:
-        print(f"Error deleting emotion record: {e}")
-        raise e 
+        print(f"Error deleting thought record: {e}")
+        raise e

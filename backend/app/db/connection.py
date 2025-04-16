@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from neo4j import GraphDatabase
+from neo4j import GraphDatabase, exceptions
 from contextlib import contextmanager
 from typing import Generator
 from neo4j._sync.driver import Session
@@ -36,13 +36,36 @@ class Neo4jConnection:
             self.driver.close()
             print("Connection closed.")
 
+    def reconnect(self):
+        """
+        Attempt to reconnect to the Neo4j database.
+        """
+
+        print("Attempting to reconnect...")
+        self.close()
+        return self.connect()
+
     @contextmanager
     def get_session(self) -> Generator[Session, None, None]:
-        """Get a Neo4j session with proper cleanup."""
-        if not self.driver:
+        """Get a Neo4j session with automatic reconnection on failure."""
+        if not self.driver or self.driver is None:
             self.connect()
-        session = self.driver.session()
+
+        
         try:
+            session = self.driver.session()
             yield session
+        except exceptions.SessionExpired:
+            print("Session expired, attempting to reconnect...")
+            if self.reconnect():
+                session = self.driver.session()
+                yield session
+            else:
+                raise Exception("Failed to reconnect to Neo4j after session expiration.")
+        
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            raise
         finally:
-            session.close()
+            if session:
+                session.close()

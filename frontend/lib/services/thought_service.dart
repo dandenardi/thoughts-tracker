@@ -11,7 +11,7 @@ class ThoughtService {
     if (user == null) {
       throw Exception("Usuário não autenticado.");
     }
-    final idToken = await user.getIdToken();
+    final idToken = await user.getIdToken(true);
     return {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $idToken',
@@ -50,7 +50,9 @@ class ThoughtService {
         final List<dynamic> jsonData = jsonDecode(response.body);
         return jsonData.cast<Map<String, dynamic>>();
       } else {
-        throw Exception('Erro ao buscar pensamentos: ${response.statusCode}');
+        throw Exception(
+          'Error while recovering thoughts: ${response.statusCode}',
+        );
       }
     } catch (e) {
       rethrow;

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from app.models.thought_record import ThoughtRecord, ThoughtRecordCreate
@@ -6,10 +6,11 @@ from app.services.thought_service import (
     create_thought,
     get_user_thoughts,
     get_thought_patterns,
-    update_thought_record,
+    update_thought,
     delete_thought
 )
 from app.dependencies.auth_dependency import get_current_user
+from app.services.emotion_service import get_all_emotions_from_db
 
 router = APIRouter(
     prefix="/thought-records",
@@ -23,10 +24,16 @@ async def create_thought_handler(
     current_user = Security(get_current_user)
 ):
     try:
+        
+        emotions = get_all_emotions_from_db()
+
+        if record.emotion not in [emotion.name for emotion in emotions]:
+            raise HTTPException(status_code=40, detail="Invalid emotion provided")
+
         full_record = ThoughtRecord(
             id="",  # vai ser gerado no banco
             user_id=current_user.uid,
-            timestamp=datetime.utcnow(),  # ou None, se for gerado no banco
+            timestamp=datetime.now(timezone.utc),  # ou None, se for gerado no banco
             title=record.title,
             situation_description=record.situation_description,
             emotion=record.emotion,
@@ -66,21 +73,45 @@ async def get_patterns_handler(current_user = Security(get_current_user)):
 @router.put("/{record_id}", response_model=ThoughtRecord)
 async def update_thoughts_handler(
     record_id: str,
-    updates: dict,
+    record: ThoughtRecordCreate,
     current_user = Security(get_current_user)
 ):
     try:
+        emotions = get_all_emotions_from_db()
+
+        # Validação de emoção
+        if record.emotion not in [emotion.name for emotion in emotions]:
+            raise HTTPException(status_code=400, detail="Invalid emotion provided")
+
+        # Verificação se o pensamento pertence ao usuário
         records = get_user_thoughts(user_id=current_user.uid)
         record_ids = [r.id for r in records]
 
         if record_id not in record_ids:
             raise HTTPException(status_code=404, detail="Record not found")
-            
-        return update_thought_record(record_id, updates)
+        
+        # Montagem do dicionário de atualizações
+        updates = {
+            "user_id": current_user.uid,
+            "timestamp": datetime.now(timezone.utc),
+            "title": record.title,
+            "situation_description": record.situation_description,
+            "emotion": record.emotion,  # Emoção validada
+            "underlying_belief": record.underlying_belief,
+            "symptoms": record.symptoms,
+        }
+        
+        # Chamada da função de atualização
+        updated_record = update_thought(record_id, updates)
+        if not updated_record:
+            raise HTTPException(status_code=404, detail="Record not found")
+        
+        return updated_record
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.delete("/{record_id}")
 async def delete_thoughts_handler(
