@@ -1,4 +1,4 @@
-from app.models.symptoms import Symptom
+from app.models.symptom import Symptom
 from app.db.connection import Neo4jConnection
 
 db = Neo4jConnection()

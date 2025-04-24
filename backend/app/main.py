@@ -18,9 +18,10 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
+    print("PRINTS FUNCIONAM?!")
     return {"message": "Hello World"}
 
 app.include_router(emotions.router, prefix="/emotions")
 app.include_router(symptoms.router, prefix="/symptoms")
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-app.include_router(thoughts.router)
+app.include_router(thoughts.router, prefix="/thought-records")

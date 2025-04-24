@@ -1,4 +1,4 @@
-from app.models.users import User
+from app.models.user import User
 from app.db.connection import Neo4jConnection
 
 db = Neo4jConnection()

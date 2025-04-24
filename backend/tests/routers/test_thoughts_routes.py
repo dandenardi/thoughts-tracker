@@ -3,8 +3,8 @@ from datetime import datetime, UTC
 from fastapi.testclient import TestClient
 from unittest.mock import patch
 from app.main import app
-from app.models.users import User
-from app.models.thought_record import ThoughtRecord, ThoughtRecordCreate
+from backend.app.models.user import User
+from backend.app.models.thought import ThoughtRecord, ThoughtRecordCreate
 
 client = TestClient(app)
 

@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.models.emotions import Emotion
+from app.models.emotion import Emotion
 from app.db.connection import Neo4jConnection
 
 router = APIRouter()
@@ -39,3 +39,18 @@ def get_all_emotions_from_db() -> list[Emotion]:
             )
             for record in results
         ]
+
+def get_emotion_frequency(user_id: str) -> list[dict]:
+    query = """
+    MATCH (u:User {uid: $user_id})-[:HAS_RECORD]->(t:Thought)
+    RETURN t.emotion AS emotion, count(t) AS count
+    ORDER BY count DESC
+    LIMIT 5
+    """
+    try:
+        with db.get_session() as session:
+            result = session.run(query, {"user_id": user_id})
+            return [{"emotion": record["emotion"], "count": record["count"]} for record in result]
+    except Exception as e:
+        print(f"Error fetching emotion frequency: {e}")
+        raise e    

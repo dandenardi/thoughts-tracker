@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:thoughts_tracker/core/theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-
+import 'package:thoughts_tracker/firebase_options.dart';
+import 'package:thoughts_tracker/services/navigation_service.dart';
 import 'package:thoughts_tracker/screens/auth/login_screen.dart';
 
 Future<void> main() async {
@@ -25,6 +25,7 @@ class ThoughtsTrackerApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: const LoginScreen(),
+      navigatorObservers: [routeObserver],
     );
   }
 }

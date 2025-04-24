@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.db.connection import Neo4jConnection
-from app.models.symptoms import Symptom
+from app.models.symptom import Symptom
 from app.services.symptom_service import add_symptom, get_all_symptoms_from_db
 
 router = APIRouter()

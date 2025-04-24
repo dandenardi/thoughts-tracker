@@ -1,6 +1,6 @@
 from firebase_admin import auth
 from fastapi import HTTPException, status
-from app.models.users import User
+from backend.app.models.user import User
 
 def verify_token(id_token: str) -> User:
     

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:thoughts_tracker/screens/thoughts_list/thoughts_list_screen.dart';
 import '../new_thought/new_thought_screen.dart';
+import 'package:thoughts_tracker/services/insights_service.dart';
+import 'package:thoughts_tracker/services/navigation_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -9,7 +11,51 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with RouteAware {
+  String _commonEmotions = "Loading...";
+  String _commonHours = "Loading...";
+  String _commonSituations = "Loading...";
+  String? _errorMessage;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInsights();
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    _loadInsights();
+  }
+
+  Future<void> _loadInsights() async {
+    try {
+      final insights = await InsightsService.fetchInsightsSummary();
+      setState(() {
+        _commonEmotions = insights['top_emotions'].join(', ');
+        _commonHours = insights['common_time_ranges'].join(', ');
+        _commonSituations = insights['frequent_keywords'].join(', ');
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Failed to load insights: $e";
+        _commonEmotions = _commonHours = _commonSituations = "Unavailable";
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,21 +93,23 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
+            if (_errorMessage != null)
+              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
             _buildSummaryCard(
               title: "Most common emotions",
-              content: "Sadness, Ansiety, Joy",
+              content: _commonEmotions,
               icon: Icons.emoji_emotions,
             ),
             const SizedBox(height: 12),
             _buildSummaryCard(
               title: "Most common hours",
-              content: "Night (18h - 22h)",
+              content: _commonHours,
               icon: Icons.schedule,
             ),
             const SizedBox(height: 12),
             _buildSummaryCard(
               title: "Recurrent situations",
-              content: "Work conflicts, Social interactions",
+              content: _commonSituations,
               icon: Icons.repeat,
             ),
             const Spacer(),
