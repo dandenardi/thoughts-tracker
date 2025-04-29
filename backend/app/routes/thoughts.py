@@ -28,7 +28,7 @@ async def create_thought_handler(
 
         if record.emotion not in [emotion.name for emotion in emotions]:
             raise HTTPException(status_code=40, detail="Invalid emotion provided")
-
+        
         full_record = Thought(
             id="",  # vai ser gerado no banco
             user_id=current_user.uid,

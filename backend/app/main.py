@@ -12,13 +12,13 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"]
 )
 
 @app.get("/")
 def read_root():
-    print("PRINTS FUNCIONAM?!")
+    
     return {"message": "Hello World"}
 
 app.include_router(emotions.router, prefix="/emotions")
