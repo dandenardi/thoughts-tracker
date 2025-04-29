@@ -18,11 +18,14 @@
 .packages
 .pub/
 .pub-cache/
-build/
+build/*
 .melos_tool/
 .metadata
 .env
 assets/.env
+
+#Except build web
+!build/web/
 
 # iOS
 **/ios/Flutter/.last_build_id
@@ -38,3 +41,4 @@ app.*.map.json
 
 # VSCode
 .vscode/
+.vercel

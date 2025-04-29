@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock, patch
 from app.services.user_service import get_user_by_firebase_uid, create_user
-from app.models.users import User
+from backend.app.models.user import User
 
 @pytest.fixture
 def mock_neo4j_session():

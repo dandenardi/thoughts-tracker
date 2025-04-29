@@ -1,22 +1,24 @@
+import asyncio
 from fastapi import Request, HTTPException, Security, Depends
 from firebase_admin import auth
 from fastapi.security import HTTPBearer
-from app.models.users import User
+from app.models.user import User
 from app.services.user_service import get_user_by_firebase_uid, create_user
 
 
 security = HTTPBearer()
 
 async def get_current_user(request: Request, token: str = Security(security)):
-    print("🔎 Entrando em get_current_user")
+    
     try:
+        
         decoded_token = auth.verify_id_token(token.credentials)
+    
         uid = decoded_token["uid"]
 
-        print(f"🔍 Chamando get_user_by_firebase_uid({uid})")
+        
         user = get_user_by_firebase_uid(uid)  # Aqui que deve ser mockado
         
-        print(f"🔍 Retorno de get_user_by_firebase_uid: {user}")
 
         if not user:
             print("❌ Nenhum usuário encontrado. Criando novo...")

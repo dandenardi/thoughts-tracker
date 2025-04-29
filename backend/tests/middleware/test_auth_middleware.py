@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from firebase_admin import auth
 from unittest.mock import patch, MagicMock, AsyncMock, Mock
 from app.middleware.auth_middleware import get_current_user
-from app.models.users import User
+from backend.app.models.user import User
 
 @pytest.fixture
 def mock_firebase_user():
