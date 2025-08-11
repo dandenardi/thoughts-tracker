@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from typing import List, Dict
 from app.models.emotion import Emotion
 from app.db.connection import Neo4jConnection
 
@@ -54,3 +55,4 @@ def get_emotion_frequency(user_id: str) -> list[dict]:
     except Exception as e:
         print(f"Error fetching emotion frequency: {e}")
         raise e    
+    
